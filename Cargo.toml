@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+aws-config = { version = "1.5.9", features = ["behavior-version-latest"] }
 aws-sdk-kinesis = "1.49.0"
 axum = "0.7.7"
 serde = { version = "1.0", features = ["derive"] }

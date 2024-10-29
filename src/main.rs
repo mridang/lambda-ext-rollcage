@@ -1,9 +1,16 @@
+mod buffer;
+
 use axum::{
     routing::{get, post},
     http::StatusCode,
     Json, Router,
 };
 use serde::{Deserialize, Serialize};
+use buffer::Person;
+use aws_config;
+use std::error::Error;
+use aws_sdk_kinesis::error::ProvideErrorMetadata;
+use aws_sdk_kinesis::primitives::Blob;
 
 #[tokio::main]
 async fn main() {
@@ -11,6 +18,33 @@ async fn main() {
         .route("/", get(root))
         .route("/add", post(put_records))
         .route("/users", post(create_user));
+
+    let config = aws_config::load_from_env().await;
+    let client = aws_sdk_kinesis::Client::new(&config);
+    let output = client.put_record()
+        .stream_arn("arn:aws:kinesis:us-east-1:188628773952:stream/mytest")
+        .partition_key("moomoo")
+        .data(Blob::new("dd"))
+        .send()
+        .await;
+
+    match output {
+        Ok(response) => {
+            println!("Successfully put record with Sequence Number: {:?}", response.sequence_number);
+            Ok::<(), Box<dyn Error>>(());
+        },
+        Err(err) => {
+            eprintln!("Error putting record: {}", err);
+            println!("{}", err.to_string());
+            println!("{}", err.message().unwrap());
+            println!("{}", err.code().unwrap());
+            Err::<(), Box<dyn Error>>(Box::new(err));
+        },
+    }
+
+    let mut person = Person::new("Alice".to_string(), 30);
+    println!("Name: {}", person.get_name());
+    println!("Age: {}", person.get_age());
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
     axum::serve(listener, app).await.unwrap();
