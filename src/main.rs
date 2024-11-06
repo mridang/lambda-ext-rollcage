@@ -11,16 +11,24 @@ use aws_config;
 use std::error::Error;
 use aws_sdk_kinesis::error::ProvideErrorMetadata;
 use aws_sdk_kinesis::primitives::Blob;
+use std::sync::Arc;
+use aws_sdk_kinesis::Client;
+use axum::extract::State;
 
 #[tokio::main]
 async fn main() {
+    let config = aws_config::load_from_env().await;
+    let client = Arc::new(aws_sdk_kinesis::Client::new(&config));
+
     let app = Router::new()
         .route("/", get(root))
-        .route("/add", post(put_records))
+        .route("/add", post({
+            let client = Arc::clone(&client); // Clone Arc for the closure
+            move |payload: Json<PutRecord>| put_records(State(client), payload) // Pass the client to the handler
+        }))
         .route("/users", post(create_user));
 
-    let config = aws_config::load_from_env().await;
-    let client = aws_sdk_kinesis::Client::new(&config);
+
     let output = client.put_record()
         .stream_arn("arn:aws:kinesis:us-east-1:188628773952:stream/mytest")
         .partition_key("moomoo")
@@ -67,6 +75,7 @@ async fn create_user(
 }
 
 async fn put_records(
+    State(client): State<Arc<Client>>,
     Json(payload): Json<PutRecord>,
 ) -> StatusCode {
     println!("{}", payload.stream_name);
@@ -75,6 +84,28 @@ async fn put_records(
         Some(x) => x,
         None    => "nu".to_string(),
     });
+
+    let output = client.put_record()
+        .stream_arn("arn:aws:kinesis:us-east-1:188628773952:stream/mytest")
+        .partition_key("moomoo")
+        .data(Blob::new("dd"))
+        .send()
+        .await;
+
+    match output {
+        Ok(response) => {
+            println!("Successfully put record with Sequencex Number: {:?}", response.sequence_number);
+            Ok::<(), Box<dyn Error>>(());
+        },
+        Err(err) => {
+            eprintln!("Error putting record: {}", err);
+            println!("{}", err.to_string());
+            println!("{}", err.message().unwrap());
+            println!("{}", err.code().unwrap());
+            Err::<(), Box<dyn Error>>(Box::new(err));
+        },
+    }
+
     StatusCode::NO_CONTENT
 }
 

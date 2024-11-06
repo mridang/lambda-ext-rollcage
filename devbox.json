@@ -1,0 +1,27 @@
+{
+  "$schema": "https://raw.githubusercontent.com/jetpack-io/devbox/0.10.3/.schema/devbox.schema.json",
+  "packages": [
+    "rustup@latest",
+    "libiconv@latest",
+    "darwin.apple_sdk.frameworks.Security",
+    "darwin.apple_sdk.frameworks.SystemConfiguration",
+    "zig@latest"
+  ],
+  "shell": {
+    "init_hook": [
+      "projectDir=$(dirname $(readlink -f \"$0\"))",
+      "rustupHomeDir=\"$projectDir\"/.rustup",
+      "mkdir -p $rustupHomeDir",
+      "export RUSTUP_HOME=$rustupHomeDir",
+      "export LIBRARY_PATH=$LIBRARY_PATH:\"$projectDir/nix/profile/default/lib\"",
+      "export RUST_BACKTRACE=full",
+      "rustup default stable",
+      "cargo fetch"
+    ],
+    "scripts": {
+      "test":       "cargo test -- --show-output",
+      "start":      "cargo run",
+      "build-docs": "cargo doc"
+    }
+  }
+}
