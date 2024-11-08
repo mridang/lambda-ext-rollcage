@@ -5,7 +5,8 @@
     "libiconv@latest",
     "darwin.apple_sdk.frameworks.Security",
     "darwin.apple_sdk.frameworks.SystemConfiguration",
-    "zig@latest"
+    "zig@latest",
+    "serverless@latest"
   ],
   "shell": {
     "init_hook": [

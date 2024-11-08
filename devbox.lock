@@ -86,6 +86,54 @@
         }
       }
     },
+    "serverless@latest": {
+      "last_modified": "2024-10-13T23:44:06Z",
+      "resolved": "github:NixOS/nixpkgs/d4f247e89f6e10120f911e2e2d2254a050d0f732#serverless",
+      "source": "devbox-search",
+      "version": "3.38.0",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/yv6v8k4hnm0hbqw5nsy1277nl7qwmb71-serverless-3.38.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/yv6v8k4hnm0hbqw5nsy1277nl7qwmb71-serverless-3.38.0"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/lvyv98cx2k2qskh34s0cy36vvzaq70lp-serverless-3.38.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/lvyv98cx2k2qskh34s0cy36vvzaq70lp-serverless-3.38.0"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/axs6c78i0p5cabkr5wbs8i9ghx3fn1is-serverless-3.38.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/axs6c78i0p5cabkr5wbs8i9ghx3fn1is-serverless-3.38.0"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/yw1pifr0im2k0q393q18hjnld0x0f1r8-serverless-3.38.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/yw1pifr0im2k0q393q18hjnld0x0f1r8-serverless-3.38.0"
+        }
+      }
+    },
     "zig@latest": {
       "last_modified": "2024-10-13T23:44:06Z",
       "resolved": "github:NixOS/nixpkgs/d4f247e89f6e10120f911e2e2d2254a050d0f732#zig",

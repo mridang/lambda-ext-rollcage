@@ -48,6 +48,7 @@ dependencies = [
  "aws-config",
  "aws-sdk-kinesis",
  "axum",
+ "hyper 0.14.31",
  "lambda-extension",
  "serde",
  "tokio",
