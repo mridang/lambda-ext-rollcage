@@ -1,13 +1,16 @@
 mod buffer;
 mod extension;
 
-use std::sync::Arc;
 use lambda_extension::{service_fn, Error, LambdaEvent, NextEvent};
+use std::sync::Arc;
 use tokio::sync::{oneshot, Mutex};
-use tracing_subscriber;
 use tracing;
+use tracing_subscriber;
 
-async fn my_extension(event: LambdaEvent, shutdown_tx: Arc<Mutex<Option<oneshot::Sender<()>>>>) -> Result<(), Error> {
+async fn my_extension(
+    event: LambdaEvent,
+    shutdown_tx: Arc<Mutex<Option<oneshot::Sender<()>>>>,
+) -> Result<(), Error> {
     match event.next {
         NextEvent::Shutdown(_e) => {
             println!("shutdown {}", _e.shutdown_reason);
@@ -43,9 +46,7 @@ async fn main() -> Result<(), Error> {
     let shutdown_tx = Arc::new(Mutex::new(Some(shutdown_tx)));
     let func = service_fn(move |event: LambdaEvent| {
         let shutdown_tx = shutdown_tx.clone();
-        async move {
-            my_extension(event, shutdown_tx).await
-        }
+        async move { my_extension(event, shutdown_tx).await }
     });
     lambda_extension::run(func).await
 }

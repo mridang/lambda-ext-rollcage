@@ -1,9 +1,6 @@
-
 use std::collections::HashMap;
 
-pub struct KinesisRecord {
-
-}
+pub struct KinesisRecord {}
 
 pub struct Person {
     name: String,
@@ -14,7 +11,11 @@ pub struct Person {
 impl Person {
     // Public constructor
     pub fn new(name: String, age: u32) -> Self {
-        Self { name, age, record_buffer: HashMap::new() }
+        Self {
+            name,
+            age,
+            record_buffer: HashMap::new(),
+        }
     }
 
     // Public method to access the private name
