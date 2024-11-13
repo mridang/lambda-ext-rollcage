@@ -8,11 +8,13 @@ use axum::routing::post;
 use axum::{routing::get, Json, Router};
 use std::net::SocketAddr;
 use std::sync::Arc;
+use tokio::io::AsyncWriteExt;
 use tokio::net::TcpListener;
 use tokio::sync::{oneshot, Mutex};
 
 pub struct MyAxumApp {
     app: Router,
+    agg: Arc<Mutex<StreamAggregator<KinesisSink>>>,
 }
 
 impl MyAxumApp {
@@ -30,7 +32,7 @@ impl MyAxumApp {
             }),
         );
 
-        MyAxumApp { app }
+        MyAxumApp { app, agg }
     }
 
     async fn root() -> &'static str {
@@ -95,5 +97,6 @@ impl MyAxumApp {
 
     pub async fn shutdown(self) {
         println!("Shutting down...");
+        self.agg.lock().await.close().await;
     }
 }

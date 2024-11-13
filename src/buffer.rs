@@ -141,7 +141,7 @@ impl<S: RecordSink> StreamAggregator<S> {
         }
     }
 
-    async fn flush_all(&mut self) {
+    pub(crate) async fn close(&mut self) {
         let keys: Vec<String> = self.aggregated_data.keys().cloned().collect();
         for key in keys {
             self.flush(key).await;
@@ -266,7 +266,7 @@ mod tests {
 
         assert!(aggregator.record_sink.captured_output.is_empty());
 
-        aggregator.flush_all().await;
+        aggregator.close().await;
         assert!(!aggregator.record_sink.captured_output.is_empty());
         let aggregated_record = AggregatedRecord::decode(&*aggregator.record_sink.captured_output)
             .expect("Failed to decode protobuf bytes");
