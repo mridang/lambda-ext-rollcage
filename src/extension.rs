@@ -1,17 +1,15 @@
-use crate::buffer::PutRecord;
-use aws_config;
-use aws_sdk_kinesis::error::ProvideErrorMetadata;
-use aws_sdk_kinesis::primitives::Blob;
-use aws_sdk_kinesis::Client;
+use crate::buffer::{PutRecord, StreamAggregator};
+use crate::sink::RecordSink;
+use crate::sinks::kinesis::KinesisSink;
 use axum::extract::State;
-use axum::http::StatusCode;
+use axum::http::header::CONTENT_LENGTH;
+use axum::http::{HeaderMap, StatusCode};
 use axum::routing::post;
 use axum::{routing::get, Json, Router};
-use std::error::Error;
 use std::net::SocketAddr;
 use std::sync::Arc;
 use tokio::net::TcpListener;
-use tokio::sync::oneshot;
+use tokio::sync::{oneshot, Mutex};
 
 pub struct MyAxumApp {
     app: Router,
@@ -19,15 +17,16 @@ pub struct MyAxumApp {
 
 impl MyAxumApp {
     pub async fn new() -> Self {
-        let config = aws_config::load_from_env().await;
-        let client = Arc::new(aws_sdk_kinesis::Client::new(&config));
+        let sink = KinesisSink::new(None).await;
+        let agg = Arc::new(Mutex::new(StreamAggregator::new(1, sink)));
 
         let app = Router::new().route("/", get(MyAxumApp::root)).route(
             "/add",
             post({
-                let client = Arc::clone(&client); // Clone Arc for the closure
-                move |payload: Json<PutRecord>| MyAxumApp::put_records(State(client), payload)
-                // Pass the client to the handler
+                let client = Arc::clone(&agg);
+                move |headers: HeaderMap, payload: Json<PutRecord>| {
+                    MyAxumApp::put_records(State(client), payload, headers)
+                }
             }),
         );
 
@@ -38,47 +37,33 @@ impl MyAxumApp {
         "Hello, World!"
     }
 
-    async fn put_records(
-        State(client): State<Arc<Client>>,
+    async fn put_records<S>(
+        State(streamagg): State<Arc<Mutex<StreamAggregator<S>>>>,
         Json(payload): Json<PutRecord>,
-    ) -> StatusCode {
-        println!("{}", payload.stream_name);
-        println!("{}", payload.partition_key);
-        println!(
-            "{}",
-            match payload.explicit_hash_key {
-                Some(x) => x,
-                None => "nu".to_string(),
-            }
-        );
-
-        let output = client
-            .put_record()
-            .stream_arn("arn:aws:kinesis:us-east-1:188628773952:stream/mytest")
-            .partition_key("moomoo")
-            .data(Blob::new("dd"))
-            .send()
-            .await;
-
-        match output {
-            Ok(response) => {
-                println!(
-                    "Successfully put record with Sequencex Number: {:?}",
-                    response.sequence_number
-                );
-                Ok::<(), Box<dyn Error>>(());
-            }
-            Err(err) => {
-                eprintln!("Error putting record: {}", err);
-                println!("{}", err.to_string());
-                err.message().unwrap();
-                println!("{}", err.message().unwrap());
-                println!("{}", err.code().unwrap());
-                Err::<(), Box<dyn Error>>(Box::new(err));
+        headers: HeaderMap,
+    ) -> StatusCode
+    where
+        S: RecordSink + Send + Sync + 'static,
+    {
+        match headers
+            .get(CONTENT_LENGTH)
+            .and_then(|v| v.to_str().ok())
+            .and_then(|s| s.parse::<u32>().ok())
+        {
+            None => StatusCode::BAD_REQUEST,
+            Some(content_length) => {
+                println!("{}", payload.clone().stream_name.clone());
+                let mut streamagg = streamagg.lock().await;
+                streamagg
+                    .insert(
+                        "payload.stream_name.clone()".to_string(),
+                        payload,
+                        content_length,
+                    )
+                    .await;
+                StatusCode::NO_CONTENT
             }
         }
-
-        StatusCode::NO_CONTENT
     }
 
     pub async fn listen(self, shutdown_rx: oneshot::Receiver<()>) -> std::io::Result<()> {

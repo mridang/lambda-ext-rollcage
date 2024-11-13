@@ -3,7 +3,7 @@ use prost::Message;
 use serde::Deserialize;
 use std::collections::HashMap;
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 pub struct PutRecord {
     pub stream_name: String,
     pub partition_key: String,
@@ -58,7 +58,7 @@ pub struct StreamAggregator<S: RecordSink> {
 }
 
 impl<S: RecordSink> StreamAggregator<S> {
-    fn new(max_size: u32, record_sink: S) -> Self {
+    pub(crate) fn new(max_size: u32, record_sink: S) -> Self {
         Self {
             max_size,
             record_sink,
@@ -66,7 +66,12 @@ impl<S: RecordSink> StreamAggregator<S> {
         }
     }
 
-    async fn insert(&mut self, stream_name: String, put_record: PutRecord, record_size: u32) {
+    pub(crate) async fn insert(
+        &mut self,
+        stream_name: String,
+        put_record: PutRecord,
+        record_size: u32,
+    ) {
         {
             let aggregated_data = self
                 .aggregated_data
