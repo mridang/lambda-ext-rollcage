@@ -66,7 +66,7 @@ impl<S: RecordSink> StreamAggregator<S> {
         }
     }
 
-    fn insert(&mut self, stream_name: String, put_record: PutRecord, record_size: u32) {
+    async fn insert(&mut self, stream_name: String, put_record: PutRecord, record_size: u32) {
         {
             let aggregated_data = self
                 .aggregated_data
@@ -74,7 +74,7 @@ impl<S: RecordSink> StreamAggregator<S> {
                 .or_insert_with(AggregatedData::default);
 
             if aggregated_data.current_size + record_size > self.max_size {
-                self.flush(stream_name.clone())
+                self.flush(stream_name.clone()).await
             }
         }
 
@@ -114,11 +114,11 @@ impl<S: RecordSink> StreamAggregator<S> {
         });
 
         if aggregated_data.current_size == self.max_size {
-            self.flush(stream_name.clone())
+            self.flush(stream_name.clone()).await
         }
     }
 
-    fn flush(&mut self, stream_name: String) {
+    async fn flush(&mut self, stream_name: String) {
         if let Some(aggregated_data) = self.aggregated_data.remove(&stream_name) {
             let aggregated_record = AggregatedRecord {
                 partition_key_table: aggregated_data.partition_key_table.clone(),
@@ -132,14 +132,14 @@ impl<S: RecordSink> StreamAggregator<S> {
                 .expect("Failed to encode record");
             println!("Dumped AggregatedRecord: {:?}", buf);
 
-            self.record_sink.sink(buf);
+            self.record_sink.sink(buf).await;
         }
     }
 
-    fn flush_all(&mut self) {
+    async fn flush_all(&mut self) {
         let keys: Vec<String> = self.aggregated_data.keys().cloned().collect();
         for key in keys {
-            self.flush(key);
+            self.flush(key).await;
         }
     }
 }
@@ -149,21 +149,25 @@ mod tests {
     use super::*;
     use crate::sink::MockSink;
 
-    #[test]
-    fn test_insert_and_flush() {
+    #[tokio::test]
+    async fn test_insert_and_flush() {
         let mock_sink = MockSink::new();
         let mut aggregator = StreamAggregator::new(100, mock_sink);
 
-        aggregator.insert(
-            "stream1".to_string(),
-            make_sample_record("key1", "hash1"),
-            50,
-        );
-        aggregator.insert(
-            "stream1".to_string(),
-            make_sample_record("key2", "hash2"),
-            60,
-        ); // Triggers flush
+        aggregator
+            .insert(
+                "stream1".to_string(),
+                make_sample_record("key1", "hash1"),
+                50,
+            )
+            .await;
+        aggregator
+            .insert(
+                "stream1".to_string(),
+                make_sample_record("key2", "hash2"),
+                60,
+            )
+            .await; // Triggers flush
 
         println!("{}", aggregator.record_sink.captured_output.len());
         assert!(!aggregator.record_sink.captured_output.is_empty());
@@ -186,21 +190,25 @@ mod tests {
         );
     }
 
-    #[test]
-    fn test_that_the_aggregator_flushes_when_threshold_matches() {
+    #[tokio::test]
+    async fn test_that_the_aggregator_flushes_when_threshold_matches() {
         let mock_sink = MockSink::new();
         let mut aggregator = StreamAggregator::new(100, mock_sink);
 
-        aggregator.insert(
-            "stream1".to_string(),
-            make_sample_record("key1", "hash1"),
-            50,
-        );
-        aggregator.insert(
-            "stream1".to_string(),
-            make_sample_record("key2", "hash2"),
-            50,
-        );
+        aggregator
+            .insert(
+                "stream1".to_string(),
+                make_sample_record("key1", "hash1"),
+                50,
+            )
+            .await;
+        aggregator
+            .insert(
+                "stream1".to_string(),
+                make_sample_record("key2", "hash2"),
+                50,
+            )
+            .await;
 
         println!("{}", aggregator.record_sink.captured_output.len());
         assert!(!aggregator.record_sink.captured_output.is_empty());
@@ -231,25 +239,29 @@ mod tests {
         );
     }
 
-    #[test]
-    fn test_that_the_aggregator_correctly_flushes_all() {
+    #[tokio::test]
+    async fn test_that_the_aggregator_correctly_flushes_all() {
         let mock_sink = MockSink::new();
         let mut aggregator = StreamAggregator::new(1000, mock_sink);
 
-        aggregator.insert(
-            "stream1".to_string(),
-            make_sample_record("key1", "hash1"),
-            50,
-        );
-        aggregator.insert(
-            "stream1".to_string(),
-            make_sample_record("key2", "hash2"),
-            50,
-        );
+        aggregator
+            .insert(
+                "stream1".to_string(),
+                make_sample_record("key1", "hash1"),
+                50,
+            )
+            .await;
+        aggregator
+            .insert(
+                "stream1".to_string(),
+                make_sample_record("key2", "hash2"),
+                50,
+            )
+            .await;
 
         assert!(aggregator.record_sink.captured_output.is_empty());
 
-        aggregator.flush_all();
+        aggregator.flush_all().await;
         assert!(!aggregator.record_sink.captured_output.is_empty());
         let aggregated_record = AggregatedRecord::decode(&*aggregator.record_sink.captured_output)
             .expect("Failed to decode protobuf bytes");
