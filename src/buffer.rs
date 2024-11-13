@@ -135,6 +135,13 @@ impl<S: RecordSink> StreamAggregator<S> {
             self.record_sink.sink(buf);
         }
     }
+
+    fn flush_all(&mut self) {
+        let keys: Vec<String> = self.aggregated_data.keys().cloned().collect();
+        for key in keys {
+            self.flush(key);
+        }
+    }
 }
 
 #[cfg(test)]
@@ -198,6 +205,52 @@ mod tests {
         println!("{}", aggregator.record_sink.captured_output.len());
         assert!(!aggregator.record_sink.captured_output.is_empty());
 
+        let aggregated_record = AggregatedRecord::decode(&*aggregator.record_sink.captured_output)
+            .expect("Failed to decode protobuf bytes");
+
+        assert_eq!(
+            aggregated_record,
+            AggregatedRecord {
+                partition_key_table: vec!["key1".to_string(), "key2".to_string()],
+                explicit_hash_key_table: vec!["hash1".to_string(), "hash2".to_string()],
+                records: vec![
+                    Record {
+                        partition_key_index: 0,
+                        explicit_hash_key_index: Some(0),
+                        data: vec![1, 2, 3],
+                        tags: vec![],
+                    },
+                    Record {
+                        partition_key_index: 1,
+                        explicit_hash_key_index: Some(1),
+                        data: vec![1, 2, 3],
+                        tags: vec![],
+                    }
+                ],
+            }
+        );
+    }
+
+    #[test]
+    fn test_that_the_aggregator_correctly_flushes_all() {
+        let mock_sink = MockSink::new();
+        let mut aggregator = StreamAggregator::new(1000, mock_sink);
+
+        aggregator.insert(
+            "stream1".to_string(),
+            make_sample_record("key1", "hash1"),
+            50,
+        );
+        aggregator.insert(
+            "stream1".to_string(),
+            make_sample_record("key2", "hash2"),
+            50,
+        );
+
+        assert!(aggregator.record_sink.captured_output.is_empty());
+
+        aggregator.flush_all();
+        assert!(!aggregator.record_sink.captured_output.is_empty());
         let aggregated_record = AggregatedRecord::decode(&*aggregator.record_sink.captured_output)
             .expect("Failed to decode protobuf bytes");
 
