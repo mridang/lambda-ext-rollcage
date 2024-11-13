@@ -1,5 +1,6 @@
 mod buffer;
 mod extension;
+mod sink;
 
 use lambda_extension::{service_fn, Error, LambdaEvent, NextEvent};
 use std::sync::Arc;

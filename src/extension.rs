@@ -1,3 +1,4 @@
+use crate::buffer::PutRecord;
 use aws_config;
 use aws_sdk_kinesis::error::ProvideErrorMetadata;
 use aws_sdk_kinesis::primitives::Blob;
@@ -6,20 +7,11 @@ use axum::extract::State;
 use axum::http::StatusCode;
 use axum::routing::post;
 use axum::{routing::get, Json, Router};
-use serde::Deserialize;
 use std::error::Error;
 use std::net::SocketAddr;
 use std::sync::Arc;
 use tokio::net::TcpListener;
 use tokio::sync::oneshot;
-
-#[derive(Deserialize)]
-struct PutRecord {
-    stream_name: String,
-    partition_key: String,
-    explicit_hash_key: Option<String>,
-    data: Vec<u8>,
-}
 
 pub struct MyAxumApp {
     app: Router,
