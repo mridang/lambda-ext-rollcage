@@ -53,14 +53,10 @@ impl ExtensionApp {
         {
             None => StatusCode::BAD_REQUEST,
             Some(content_length) => {
-                println!("{}", payload.clone().stream_name.clone());
-                let mut streamagg = aggregator.lock().await;
-                streamagg
-                    .insert(
-                        "payload.stream_name.clone()".to_string(),
-                        payload,
-                        content_length,
-                    )
+                aggregator
+                    .lock()
+                    .await
+                    .insert(payload.clone().stream_name, payload, content_length)
                     .await;
                 StatusCode::NO_CONTENT
             }

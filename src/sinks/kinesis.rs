@@ -20,13 +20,13 @@ impl KinesisSink {
 }
 
 impl RecordSink for KinesisSink {
-    async fn sink(&mut self, data: Vec<u8>) {
+    async fn sink(&mut self, stream_arn: String, encoded_data: Vec<u8>) {
         let output = self
             .client
             .put_record()
-            .stream_arn("arn:aws:kinesis:us-east-1:188628773952:stream/mytest")
+            .stream_arn(stream_arn)
             .partition_key("moomoo")
-            .data(Blob::new(data))
+            .data(Blob::new(encoded_data))
             .send()
             .await;
     }

@@ -173,7 +173,7 @@ impl<S: RecordSink> StreamAggregator<S> {
             final_buf.extend_from_slice(&buf);
             final_buf.extend_from_slice(&dg_bytes);
 
-            self.record_sink.sink(final_buf).await;
+            self.record_sink.sink(stream_name, final_buf).await;
         }
     }
 
@@ -213,23 +213,35 @@ mod tests {
         println!("{}", aggregator.record_sink.captured_output.len());
         assert!(!aggregator.record_sink.captured_output.is_empty());
 
-        let md = MessageData::new(aggregator.record_sink.captured_output.clone());
-        let aggregated_record =
-            AggregatedRecord::decode(&*md.raw_bytes).expect("Failed to decode protobuf bytes");
-
-        assert_eq!(
-            aggregated_record,
-            AggregatedRecord {
-                partition_key_table: vec!["key1".to_string()],
-                explicit_hash_key_table: vec!["hash1".to_string()],
-                records: vec![Record {
-                    partition_key_index: 0,
-                    explicit_hash_key_index: Some(0),
-                    data: vec![1, 2, 3],
-                    tags: vec![],
-                }],
+        match aggregator
+            .record_sink
+            .captured_output
+            .clone()
+            .remove("stream1")
+        {
+            None => {
+                panic!("Stream 1 should not be flushed");
             }
-        );
+            Some(raw_data) => {
+                let md = MessageData::new(raw_data);
+                let aggregated_record = AggregatedRecord::decode(&*md.raw_bytes)
+                    .expect("Failed to decode protobuf bytes");
+
+                assert_eq!(
+                    aggregated_record,
+                    AggregatedRecord {
+                        partition_key_table: vec!["key1".to_string()],
+                        explicit_hash_key_table: vec!["hash1".to_string()],
+                        records: vec![Record {
+                            partition_key_index: 0,
+                            explicit_hash_key_index: Some(0),
+                            data: vec![1, 2, 3],
+                            tags: vec![],
+                        }],
+                    }
+                );
+            }
+        }
     }
 
     #[tokio::test]
@@ -255,31 +267,43 @@ mod tests {
         println!("{}", aggregator.record_sink.captured_output.len());
         assert!(!aggregator.record_sink.captured_output.is_empty());
 
-        let md = MessageData::new(aggregator.record_sink.captured_output.clone());
-        let aggregated_record =
-            AggregatedRecord::decode(&*md.raw_bytes).expect("Failed to decode protobuf bytes");
-
-        assert_eq!(
-            aggregated_record,
-            AggregatedRecord {
-                partition_key_table: vec!["key1".to_string(), "key2".to_string()],
-                explicit_hash_key_table: vec!["hash1".to_string(), "hash2".to_string()],
-                records: vec![
-                    Record {
-                        partition_key_index: 0,
-                        explicit_hash_key_index: Some(0),
-                        data: vec![1, 2, 3],
-                        tags: vec![],
-                    },
-                    Record {
-                        partition_key_index: 1,
-                        explicit_hash_key_index: Some(1),
-                        data: vec![1, 2, 3],
-                        tags: vec![],
-                    }
-                ],
+        match aggregator
+            .record_sink
+            .captured_output
+            .clone()
+            .remove("stream1")
+        {
+            None => {
+                panic!("Stream 1 should not be flushed");
             }
-        );
+            Some(raw_data) => {
+                let md = MessageData::new(raw_data);
+                let aggregated_record = AggregatedRecord::decode(&*md.raw_bytes)
+                    .expect("Failed to decode protobuf bytes");
+
+                assert_eq!(
+                    aggregated_record,
+                    AggregatedRecord {
+                        partition_key_table: vec!["key1".to_string(), "key2".to_string()],
+                        explicit_hash_key_table: vec!["hash1".to_string(), "hash2".to_string()],
+                        records: vec![
+                            Record {
+                                partition_key_index: 0,
+                                explicit_hash_key_index: Some(0),
+                                data: vec![1, 2, 3],
+                                tags: vec![],
+                            },
+                            Record {
+                                partition_key_index: 1,
+                                explicit_hash_key_index: Some(1),
+                                data: vec![1, 2, 3],
+                                tags: vec![],
+                            }
+                        ],
+                    }
+                );
+            }
+        }
     }
 
     #[tokio::test]
@@ -307,31 +331,43 @@ mod tests {
         aggregator.close().await;
         assert!(!aggregator.record_sink.captured_output.is_empty());
 
-        let md = MessageData::new(aggregator.record_sink.captured_output.clone());
-        let aggregated_record =
-            AggregatedRecord::decode(&*md.raw_bytes).expect("Failed to decode protobuf bytes");
-
-        assert_eq!(
-            aggregated_record,
-            AggregatedRecord {
-                partition_key_table: vec!["key1".to_string(), "key2".to_string()],
-                explicit_hash_key_table: vec!["hash1".to_string(), "hash2".to_string()],
-                records: vec![
-                    Record {
-                        partition_key_index: 0,
-                        explicit_hash_key_index: Some(0),
-                        data: vec![1, 2, 3],
-                        tags: vec![],
-                    },
-                    Record {
-                        partition_key_index: 1,
-                        explicit_hash_key_index: Some(1),
-                        data: vec![1, 2, 3],
-                        tags: vec![],
-                    }
-                ],
+        match aggregator
+            .record_sink
+            .captured_output
+            .clone()
+            .remove("stream1")
+        {
+            None => {
+                panic!("Stream 1 should not be flushed");
             }
-        );
+            Some(raw_data) => {
+                let md = MessageData::new(raw_data);
+                let aggregated_record = AggregatedRecord::decode(&*md.raw_bytes)
+                    .expect("Failed to decode protobuf bytes");
+
+                assert_eq!(
+                    aggregated_record,
+                    AggregatedRecord {
+                        partition_key_table: vec!["key1".to_string(), "key2".to_string()],
+                        explicit_hash_key_table: vec!["hash1".to_string(), "hash2".to_string()],
+                        records: vec![
+                            Record {
+                                partition_key_index: 0,
+                                explicit_hash_key_index: Some(0),
+                                data: vec![1, 2, 3],
+                                tags: vec![],
+                            },
+                            Record {
+                                partition_key_index: 1,
+                                explicit_hash_key_index: Some(1),
+                                data: vec![1, 2, 3],
+                                tags: vec![],
+                            }
+                        ],
+                    }
+                );
+            }
+        }
     }
 
     fn make_sample_record(partition_key: &str, explicit_hash_key: &str) -> PutRecord {
