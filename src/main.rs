@@ -38,7 +38,7 @@ async fn main() -> Result<(), Error> {
 
     let (shutdown_tx, shutdown_rx) = oneshot::channel();
 
-    let app = extension::MyAxumApp::new().await;
+    let app = extension::ExtensionApp::new().await;
     tokio::task::spawn(async move {
         if let Err(e) = app.listen(shutdown_rx).await {
             eprintln!("Error starting server: {}", e);

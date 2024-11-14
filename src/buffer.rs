@@ -256,8 +256,8 @@ mod tests {
         assert!(!aggregator.record_sink.captured_output.is_empty());
 
         let md = MessageData::new(aggregator.record_sink.captured_output.clone());
-        let aggregated_record = AggregatedRecord::decode(&*md.raw_bytes)
-            .expect("Failed to decode protobuf bytes");
+        let aggregated_record =
+            AggregatedRecord::decode(&*md.raw_bytes).expect("Failed to decode protobuf bytes");
 
         assert_eq!(
             aggregated_record,
@@ -308,8 +308,8 @@ mod tests {
         assert!(!aggregator.record_sink.captured_output.is_empty());
 
         let md = MessageData::new(aggregator.record_sink.captured_output.clone());
-        let aggregated_record = AggregatedRecord::decode(&*md.raw_bytes)
-            .expect("Failed to decode protobuf bytes");
+        let aggregated_record =
+            AggregatedRecord::decode(&*md.raw_bytes).expect("Failed to decode protobuf bytes");
 
         assert_eq!(
             aggregated_record,

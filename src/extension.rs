@@ -8,31 +8,30 @@ use axum::routing::post;
 use axum::{routing::get, Json, Router};
 use std::net::SocketAddr;
 use std::sync::Arc;
-use tokio::io::AsyncWriteExt;
 use tokio::net::TcpListener;
 use tokio::sync::{oneshot, Mutex};
 
-pub struct MyAxumApp {
+pub struct ExtensionApp {
     app: Router,
     agg: Arc<Mutex<StreamAggregator<KinesisSink>>>,
 }
 
-impl MyAxumApp {
+impl ExtensionApp {
     pub async fn new() -> Self {
         let sink = KinesisSink::new(None).await;
         let agg = Arc::new(Mutex::new(StreamAggregator::new(1, sink)));
 
-        let app = Router::new().route("/", get(MyAxumApp::root)).route(
+        let app = Router::new().route("/", get(ExtensionApp::root)).route(
             "/add",
             post({
                 let client = Arc::clone(&agg);
                 move |headers: HeaderMap, payload: Json<PutRecord>| {
-                    MyAxumApp::put_records(State(client), payload, headers)
+                    ExtensionApp::put_records(State(client), payload, headers)
                 }
             }),
         );
 
-        MyAxumApp { app, agg }
+        ExtensionApp { app, agg }
     }
 
     async fn root() -> &'static str {
