@@ -3,6 +3,32 @@ use prost::Message;
 use serde::Deserialize;
 use std::collections::HashMap;
 
+struct MessageData {
+    pub raw_bytes: Vec<u8>,
+}
+
+impl MessageData {
+    fn new(buff: Vec<u8>) -> MessageData {
+        match buff.len() > 20 {
+            false => panic!("Invalid buffer length"),
+            true => match (&buff[0..4]) == [0xF3, 0x89, 0x9A, 0xC2] {
+                false => panic!("Incorrect start marker in bufffer"),
+                true => {
+                    let raw_bytes = &buff[4..buff.len() - 16];
+                    let last_16_bytes = &buff[buff.len() - 16..];
+
+                    match md5::compute(&raw_bytes).0 == last_16_bytes {
+                        false => panic!("Buffer does not start with the expected prefix"),
+                        true => MessageData {
+                            raw_bytes: raw_bytes.to_vec(),
+                        },
+                    }
+                }
+            },
+        }
+    }
+}
+
 #[derive(Deserialize, Clone)]
 pub struct PutRecord {
     pub stream_name: String,
@@ -137,7 +163,17 @@ impl<S: RecordSink> StreamAggregator<S> {
                 .expect("Failed to encode record");
             println!("Dumped AggregatedRecord: {:?}", buf);
 
-            self.record_sink.sink(buf).await;
+            let dg = md5::compute(&buf);
+            let dg_bytes = dg.0.to_vec();
+
+            let prefix: [u8; 4] = [0xF3, 0x89, 0x9A, 0xC2];
+            let mut final_buf = Vec::with_capacity(4 + buf.len() + 16);
+
+            final_buf.extend_from_slice(&prefix);
+            final_buf.extend_from_slice(&buf);
+            final_buf.extend_from_slice(&dg_bytes);
+
+            self.record_sink.sink(final_buf).await;
         }
     }
 
@@ -177,8 +213,9 @@ mod tests {
         println!("{}", aggregator.record_sink.captured_output.len());
         assert!(!aggregator.record_sink.captured_output.is_empty());
 
-        let aggregated_record = AggregatedRecord::decode(&*aggregator.record_sink.captured_output)
-            .expect("Failed to decode protobuf bytes");
+        let md = MessageData::new(aggregator.record_sink.captured_output.clone());
+        let aggregated_record =
+            AggregatedRecord::decode(&*md.raw_bytes).expect("Failed to decode protobuf bytes");
 
         assert_eq!(
             aggregated_record,
@@ -218,7 +255,8 @@ mod tests {
         println!("{}", aggregator.record_sink.captured_output.len());
         assert!(!aggregator.record_sink.captured_output.is_empty());
 
-        let aggregated_record = AggregatedRecord::decode(&*aggregator.record_sink.captured_output)
+        let md = MessageData::new(aggregator.record_sink.captured_output.clone());
+        let aggregated_record = AggregatedRecord::decode(&*md.raw_bytes)
             .expect("Failed to decode protobuf bytes");
 
         assert_eq!(
@@ -268,7 +306,9 @@ mod tests {
 
         aggregator.close().await;
         assert!(!aggregator.record_sink.captured_output.is_empty());
-        let aggregated_record = AggregatedRecord::decode(&*aggregator.record_sink.captured_output)
+
+        let md = MessageData::new(aggregator.record_sink.captured_output.clone());
+        let aggregated_record = AggregatedRecord::decode(&*md.raw_bytes)
             .expect("Failed to decode protobuf bytes");
 
         assert_eq!(
