@@ -35,11 +35,11 @@ impl ExtensionApp {
     }
 
     async fn root() -> &'static str {
-        "Hello, World!"
+        "OK"
     }
 
     async fn put_records<S>(
-        State(streamagg): State<Arc<Mutex<StreamAggregator<S>>>>,
+        State(aggregator): State<Arc<Mutex<StreamAggregator<S>>>>,
         Json(payload): Json<PutRecord>,
         headers: HeaderMap,
     ) -> StatusCode
@@ -54,7 +54,7 @@ impl ExtensionApp {
             None => StatusCode::BAD_REQUEST,
             Some(content_length) => {
                 println!("{}", payload.clone().stream_name.clone());
-                let mut streamagg = streamagg.lock().await;
+                let mut streamagg = aggregator.lock().await;
                 streamagg
                     .insert(
                         "payload.stream_name.clone()".to_string(),
@@ -97,5 +97,6 @@ impl ExtensionApp {
     pub async fn shutdown(self) {
         println!("Shutting down...");
         self.agg.lock().await.close().await;
+        println!("Shutdown complete");
     }
 }
