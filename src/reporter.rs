@@ -64,7 +64,10 @@ impl ErrorReporter {
             .client
             .post(report_url)
             .header("Content-Type", "application/json")
-            .header("X-Sentry-Auth", format!("Sentry sentry_version=7, sentry_key={}", self.public_key))
+            .header(
+                "X-Sentry-Auth",
+                format!("Sentry sentry_version=7, sentry_key={}", self.public_key),
+            )
             .body(
                 vec![
                     json!({
@@ -115,7 +118,11 @@ impl ErrorReporter {
                 if response.status().is_success() {
                     println!("Reporter report sent successfully.");
                 } else {
-                    eprintln!("Failed to send report: {}, {}", response.status(), response.text().await.unwrap());
+                    eprintln!(
+                        "Failed to send report: {}, {}",
+                        response.status(),
+                        response.text().await.unwrap()
+                    );
                 }
             }
             Err(e) => {
