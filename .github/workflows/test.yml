@@ -24,7 +24,7 @@ jobs:
           components: rustfmt, clippy
 
       - name: Install Dependencies
-        run: cargo fetch
+        run: cargo fetch --locked
 
       - name: Run Test
         run: cargo test --all-features
