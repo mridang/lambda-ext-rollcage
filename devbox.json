@@ -6,7 +6,7 @@
     "darwin.apple_sdk.frameworks.Security",
     "darwin.apple_sdk.frameworks.SystemConfiguration",
     "zig@latest",
-    "serverless@latest"
+    "serverless@latest",
   ],
   "shell": {
     "init_hook": [
@@ -22,7 +22,10 @@
     "scripts": {
       "test":       "cargo test -- --show-output",
       "start":      "cargo run",
-      "build-docs": "cargo doc"
+      "format":     "cargo fmt",
+      "build-docs": "cargo doc",
+      "build":      "cargo lambda build --release --extension --target x86_64-unknown-linux-musl",
+      "deploy":     "cargo lambda deploy --extension"
     }
   }
 }

@@ -1,30 +1,34 @@
-mod buffer;
-mod extension;
-mod sink;
-mod sinks;
+mod reporter;
 
-use lambda_extension::{service_fn, Error, LambdaEvent, NextEvent};
+use crate::reporter::ErrorReporter;
+use lambda_extension::{
+    service_fn, Error, Extension, LambdaTelemetry, LambdaTelemetryRecord, SharedService, Status,
+};
 use std::sync::Arc;
-use tokio::sync::{oneshot, Mutex};
 use tracing;
 use tracing_subscriber;
 
-async fn my_extension(
-    event: LambdaEvent,
-    shutdown_tx: Arc<Mutex<Option<oneshot::Sender<()>>>>,
+async fn handler(
+    events: Vec<LambdaTelemetry>,
+    crash_reporter: Arc<ErrorReporter>,
 ) -> Result<(), Error> {
-    match event.next {
-        NextEvent::Shutdown(_e) => {
-            println!("shutdown {}", _e.shutdown_reason);
-            let mut tx = shutdown_tx.lock().await;
-            if let Some(tx) = tx.take() {
-                let _ = tx.send(()); // Send the shutdown signal once
-            }
-        }
-        NextEvent::Invoke(_e) => {
-            println!("invoke {}", _e.request_id)
+    for event in events {
+        match event.record {
+            LambdaTelemetryRecord::PlatformRuntimeDone {
+                error_type, status, ..
+            } => match status {
+                Status::Error => match error_type.as_deref() {
+                    Some("Runtime.HandlerNotFound") => {
+                        crash_reporter.report("Runtime.HandlerNotFound").await;
+                    }
+                    _ => {}
+                },
+                _ => {}
+            },
+            _ => {}
         }
     }
+
     Ok(())
 }
 
@@ -36,19 +40,14 @@ async fn main() -> Result<(), Error> {
         .without_time()
         .init();
 
-    let (shutdown_tx, shutdown_rx) = oneshot::channel();
-
-    let app = extension::ExtensionApp::new().await;
-    tokio::task::spawn(async move {
-        if let Err(e) = app.listen(shutdown_rx).await {
-            eprintln!("Error starting server: {}", e);
-        }
-    });
-
-    let shutdown_tx = Arc::new(Mutex::new(Some(shutdown_tx)));
-    let func = service_fn(move |event: LambdaEvent| {
-        let shutdown_tx = shutdown_tx.clone();
-        async move { my_extension(event, shutdown_tx).await }
-    });
-    lambda_extension::run(func).await
+    let crash_reporter = Arc::new(ErrorReporter::new());
+    let telemetry_processor = SharedService::new(service_fn({
+        let crash_reporter = crash_reporter.clone();
+        move |events| handler(events, crash_reporter.clone())
+    }));
+    Extension::new()
+        .with_telemetry_processor(telemetry_processor)
+        .run()
+        .await?;
+    Ok(())
 }
