@@ -1,0 +1,30 @@
+name: Lint Code (Eslint)
+
+on: push
+
+permissions:
+  contents: write
+
+defaults:
+  run:
+    working-directory: ./
+
+jobs:
+  code-linting:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+
+      - name: Install Dependencies
+        run: cargo fetch --locked
+
+      - name: Run Clippy
+        run: cargo clippy --all-targets --all-features -- -D warnings
