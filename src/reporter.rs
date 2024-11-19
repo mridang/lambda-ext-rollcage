@@ -69,7 +69,7 @@ impl ErrorReporter {
                 format!("Sentry sentry_version=7, sentry_key={}", self.public_key),
             )
             .body(
-                vec![
+                [
                     json!({
                         "event_id": Uuid::new_v4().as_simple().to_string(),
                         "sent_at": Utc::now().to_rfc3339(),

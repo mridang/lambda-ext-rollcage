@@ -5,9 +5,9 @@ use lambda_extension::{
     service_fn, Error, Extension, LambdaTelemetry, LambdaTelemetryRecord, SharedService, Status,
 };
 use std::sync::Arc;
-use tracing;
-use tracing_subscriber;
 
+#[allow(clippy::collapsible_match)]
+#[allow(clippy::single_match)]
 async fn handler(
     events: Vec<LambdaTelemetry>,
     crash_reporter: Arc<ErrorReporter>,
