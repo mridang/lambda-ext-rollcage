@@ -55,6 +55,8 @@ of the `Runtime.HandlerNotFound` error and if found, reports it to Sentry.
 To keep the extension footprint small, the Sentry SDK was omitted and instead the
 crashes are reported using the [simple reporting endpoints used by SDK developers](https://develop.sentry.dev/sdk/overview/).
 
+<img alt="Architecture Diagram" src="https://github.com/user-attachments/assets/2eda60fa-07bd-4228-8d6f-3a2f8a684303">
+
 ## Developing
 
 The app is built with Rust using the latest stable Rust version.
