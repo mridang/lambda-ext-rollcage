@@ -6,7 +6,7 @@
     "darwin.apple_sdk.frameworks.Security",
     "darwin.apple_sdk.frameworks.SystemConfiguration",
     "zig@latest",
-    "serverless@latest",
+    "serverless@latest"
   ],
   "shell": {
     "init_hook": [
