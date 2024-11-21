@@ -42,22 +42,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "apx"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "gethostname",
- "lambda-extension",
- "reqwest",
- "serde_json",
- "tokio",
- "tracing",
- "tracing-subscriber",
- "uuid",
- "wiremock",
-]
-
-[[package]]
 name = "assert-json-diff"
 version = "2.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1007,6 +991,22 @@ dependencies = [
  "spin",
  "untrusted",
  "windows-sys",
+]
+
+[[package]]
+name = "rollcage"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "gethostname",
+ "lambda-extension",
+ "reqwest",
+ "serde_json",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+ "uuid",
+ "wiremock",
 ]
 
 [[package]]
