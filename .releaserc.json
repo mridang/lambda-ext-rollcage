@@ -8,13 +8,16 @@
     [
       "@semantic-release/exec",
       {
-        "prepareCmd": "make build"
+        "prepareCmd": "make build",
+        "publishCmd": "make deploy"
       }
     ],
     [
       "@semantic-release/github",
       {
-        "assets": []
+        "assets": [
+
+        ]
       }
     ],
     [
