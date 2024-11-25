@@ -8,9 +8,12 @@ setup:
 		rustup target add $$target; \
 	done
 
+
 # Build the binary for all targets
 .PHONY: build
 build: setup
+	cargo install cargo-binstall
+	cargo binstall cargo-lambda --no-confirm
 	@for target in $(TARGETS); do \
 		cargo lambda build --release --extension --target $$target; \
 	done

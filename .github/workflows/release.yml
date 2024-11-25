@@ -29,6 +29,9 @@ jobs:
           toolchain: stable
           components: rustfmt, clippy
 
+      - name: Setup Zig
+        uses: mlugg/setup-zig@v1
+
       - name: Install Dependencies
         run: cargo fetch --locked
 
