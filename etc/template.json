@@ -8,12 +8,6 @@
     }
   },
   "Resources": {
-    "HelloLogGroup": {
-      "Type": "AWS::Logs::LogGroup",
-      "Properties": {
-        "LogGroupName": "/aws/lambda/hello-world-dev-hello"
-      }
-    },
     "IamRoleLambdaExecution": {
       "Type": "AWS::IAM::Role",
       "Properties": {
@@ -35,16 +29,7 @@
         },
         "Policies": [
           {
-            "PolicyName": {
-              "Fn::Join": [
-                "-",
-                [
-                  "hello-world",
-                  "dev",
-                  "lambda"
-                ]
-              ]
-            },
+            "PolicyName": "example-rollcage-write-logs",
             "PolicyDocument": {
               "Version": "2012-10-17",
               "Statement": [
@@ -53,24 +38,10 @@
                   "Action": [
                     "logs:CreateLogStream",
                     "logs:CreateLogGroup",
-                    "logs:TagResource"
-                  ],
-                  "Resource": [
-                    {
-                      "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/hello-world-dev*:*"
-                    }
-                  ]
-                },
-                {
-                  "Effect": "Allow",
-                  "Action": [
+                    "logs:TagResource",
                     "logs:PutLogEvents"
                   ],
-                  "Resource": [
-                    {
-                      "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/hello-world-dev*:*:*"
-                    }
-                  ]
+                  "Resource": "*"
                 }
               ]
             }
@@ -81,18 +52,17 @@
           "Fn::Join": [
             "-",
             [
-              "hello-world",
-              "dev",
+              "example-rollcage",
               {
                 "Ref": "AWS::Region"
               },
-              "lambdaRole"
+              "role"
             ]
           ]
         }
       }
     },
-    "HelloLambdaFunction": {
+    "ExampleRollcageLambdaFunction": {
       "Type": "AWS::Lambda::Function",
       "Properties": {
         "Code": {
@@ -107,7 +77,7 @@
         },
         "Handler": "handler.hello",
         "Runtime": "nodejs18.x",
-        "FunctionName": "hello-world-dev-hello",
+        "FunctionName": "example-rollcage-main",
         "MemorySize": 1024,
         "Timeout": 6,
         "Environment": {
@@ -124,31 +94,28 @@
           ]
         },
         "Layers": [
-          "arn:aws:lambda:us-east-1:188628773952:layer:apx:14"
+          "arn:aws:lambda:us-east-1:188628773952:layer:rollcage:2"
         ]
-      },
-      "DependsOn": [
-        "HelloLogGroup"
-      ]
+      }
     },
-    "HelloLambdaFunctionUrl": {
+    "ExampleRollcageFunctionUrl": {
       "Type": "AWS::Lambda::Url",
       "Properties": {
         "AuthType": "NONE",
         "TargetFunctionArn": {
           "Fn::GetAtt": [
-            "HelloLambdaFunction",
+            "ExampleRollcageLambdaFunction",
             "Arn"
           ]
         }
       }
     },
-    "HelloLambdaPermissionFnUrl": {
+    "ExampleRollcageLambdaPermission": {
       "Type": "AWS::Lambda::Permission",
       "Properties": {
         "FunctionName": {
           "Fn::GetAtt": [
-            "HelloLambdaFunction",
+            "ExampleRollcageLambdaFunction",
             "Arn"
           ]
         },
@@ -159,16 +126,16 @@
     }
   },
   "Outputs": {
-    "HelloLambdaFunctionUrl": {
+    "ExampleRollcageFunctionUrl": {
       "Description": "Lambda Function URL",
       "Value": {
         "Fn::GetAtt": [
-          "HelloLambdaFunctionUrl",
+          "ExampleRollcageFunctionUrl",
           "FunctionUrl"
         ]
       },
       "Export": {
-        "Name": "sls-hello-world-dev-HelloLambdaFunctionUrl"
+        "Name": "ExampleRollcageLambdaFunctionUrl"
       }
     }
   }
