@@ -1,5 +1,5 @@
 # Define variables for the targets and output binary name
-TARGETS := x86_64-unknown-linux-musl aarch64-unknown-linux-musl
+TARGETS := aarch64-unknown-linux-musl x86_64-unknown-linux-musl
 
 # Setup phase to install necessary Rust targets
 .PHONY: setup
@@ -19,3 +19,8 @@ build: setup
 .PHONY: clean
 clean:
 	cargo clean
+
+# Deploy the Lambda function to AWS
+.PHONY: deploy
+deploy: build
+	cargo lambda deploy --extension
