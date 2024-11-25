@@ -24,7 +24,15 @@ The layer requires two environment variables to be set:
 
 #### Example
 
-A sample Cloudformation template is available under the `etc` directory.
+A sample Cloudformation template is available under the `etc` directory
+and can be deployed using the following command:
+
+```
+aws cloudformation deploy --template-file etc/template.json \
+  --stack-name="example-rollcage-production" \
+  --parameter-overrides SentryDsn="https://a0ae9168ae01c272f11c328b55aaaaa3@o4506874198111111.ingest.us.sentry.io/4507145788391424" \
+  --capabilities CAPABILITY_NAMED_IAM
+```
 
 When deployed, this template creates a simple NodeJS-based Lambda function
 with a function URL. When invoked, the function simply crashes since
