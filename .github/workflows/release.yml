@@ -35,8 +35,8 @@ jobs:
       - name: Install Semantic Release
         run: |
           npm install --global semantic-release
+          npm install --global @semantic-release/git
           npm install --global @semantic-release/exec
-        
 
       - name: Run semantic-release
         env:
