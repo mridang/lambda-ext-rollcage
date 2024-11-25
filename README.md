@@ -22,6 +22,15 @@ The layer requires two environment variables to be set:
 * `SENTRY_DSN`: Indicates the endpoint (Data Source Name) for your project e.g `https://a0ae9328b5566cb61@o4506874198163456.ingest.us.sentry.io/4507144488391424`
 * `NODE_ENV`: Indicates the name of the current environment in which the application is running e.g. `production`
 
+#### Example
+
+A sample Cloudformation template is available under the `etc` directory.
+
+When deployed, this template creates a simple NodeJS-based Lambda function
+with a function URL. When invoked, the function simply crashes since
+the handler is misconfigured, and the corresponding crash-report is sent
+to Sentry.
+
 ## Table of Contents
 
 - [Architecture](#architecture)
