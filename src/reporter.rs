@@ -3,6 +3,7 @@ use gethostname::gethostname;
 use reqwest::{Client, Url};
 use serde_json::json;
 use std::env;
+use tracing::{error, info};
 use uuid::Uuid;
 
 pub struct ErrorReporter {
@@ -58,7 +59,7 @@ impl ErrorReporter {
             self.ingest_scheme, self.ingest_host, self.ingest_port, self.project_id
         );
 
-        println!("Sending crash to {}", report_url);
+        info!("Sending crash to {}", report_url);
 
         match self
             .client
@@ -116,9 +117,9 @@ impl ErrorReporter {
         {
             Ok(response) => {
                 if response.status().is_success() {
-                    println!("Reporter report sent successfully.");
+                    info!("Reporter report sent successfully.");
                 } else {
-                    eprintln!(
+                    error!(
                         "Failed to send report: {}, {}",
                         response.status(),
                         response.text().await.unwrap()
@@ -126,7 +127,7 @@ impl ErrorReporter {
                 }
             }
             Err(e) => {
-                eprintln!("Error sending report: {:?}", e);
+                error!("Error sending report: {:?}", e);
             }
         };
     }
