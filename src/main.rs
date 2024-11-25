@@ -18,6 +18,9 @@ async fn handler(
                 error_type, status, ..
             } => match status {
                 Status::Error => match error_type.as_deref() {
+                    Some("Runtime.ImportModuleError") => {
+                        crash_reporter.report("Runtime.ImportModuleError").await;
+                    }
                     Some("Runtime.HandlerNotFound") => {
                         crash_reporter.report("Runtime.HandlerNotFound").await;
                     }
