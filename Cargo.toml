@@ -11,7 +11,7 @@ tracing = "0.1.40"
 serde_json = "1.0.132"
 reqwest = { version = "0.12.9", features = ["json", "rustls-tls"], default-features = false  }
 uuid = { version = "1.11.0", features = ["v4"] }
-chrono = "0.4.38"
+chrono = "0.4.39"
 gethostname = "0.5.0"
 
 [dev-dependencies]
