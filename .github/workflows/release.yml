@@ -35,12 +35,6 @@ jobs:
       - name: Install Dependencies
         run: cargo fetch --locked
 
-      - name: Install Semantic Release
-        run: |
-          npm install --global semantic-release
-          npm install --global @semantic-release/git
-          npm install --global @semantic-release/exec
-
       - name: Run semantic-release
         uses: mridang/action-semantic-release@v1.0.0
         with:
