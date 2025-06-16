@@ -30,13 +30,13 @@ jobs:
           components: rustfmt, clippy
 
       - name: Setup Zig
-        uses: mlugg/setup-zig@v1
+        uses: mlugg/setup-zig@v2
 
       - name: Install Dependencies
         run: cargo fetch --locked
 
       - name: Run semantic-release
-        uses: mridang/action-semantic-release@v1.0.0
+        uses: mridang/action-semantic-release@v1.3.0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
         env:
