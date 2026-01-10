@@ -5,8 +5,8 @@ edition = "2021"
 
 [dependencies]
 lambda-extension = "0.11.0"
-tokio = { version = "1.0", features = ["full"] }
-tracing-subscriber = "0.3.18"
+tokio = { version = "1.43", features = ["full"] }
+tracing-subscriber = "0.3.20"
 tracing = "0.1.40"
 serde_json = "1.0.132"
 reqwest = { version = "0.12.9", features = ["json", "rustls-tls"], default-features = false  }
