@@ -4,16 +4,16 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-lambda-extension = "0.11.0"
-tokio = { version = "1.0", features = ["full"] }
+lambda-extension = "1.0.2"
+tokio = { version = "1.42", features = ["full"] }
 tracing-subscriber = "0.3.18"
-tracing = "0.1.40"
-serde_json = "1.0.132"
-reqwest = { version = "0.12.9", features = ["json", "rustls-tls"], default-features = false  }
-uuid = { version = "1.11.0", features = ["v4"] }
-chrono = "0.4.38"
-gethostname = "0.5.0"
+tracing = "0.1.44"
+serde_json = "1.0.149"
+reqwest = { version = "0.12.12", features = ["json", "rustls-tls"], default-features = false  }
+uuid = { version = "1.16.0", features = ["v4"] }
+chrono = "0.4.42"
+gethostname = "1.1.0"
 
 [dev-dependencies]
-wiremock = "0.6.2"
+wiremock = "0.6.5"
 
