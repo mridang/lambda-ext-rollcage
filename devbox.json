@@ -8,17 +8,12 @@
     "zig@latest",
     "serverless@latest"
   ],
+  "env": {
+    "CARGO_HOME": "$DEVBOX_PROJECT_ROOT/.cargo",
+    "RUSTUP_HOME": "$DEVBOX_PROJECT_ROOT/.rustup",
+    "RUST_BACKTRACE": "full"
+  },
   "shell": {
-    "init_hook": [
-      "projectDir=$(dirname $(readlink -f \"$0\"))",
-      "rustupHomeDir=\"$projectDir\"/.rustup",
-      "mkdir -p $rustupHomeDir",
-      "export RUSTUP_HOME=$rustupHomeDir",
-      "export LIBRARY_PATH=$LIBRARY_PATH:\"$projectDir/nix/profile/default/lib\"",
-      "export RUST_BACKTRACE=full",
-      "rustup default stable",
-      "cargo fetch"
-    ],
     "scripts": {
       "test":       "cargo test -- --show-output",
       "start":      "cargo run",
