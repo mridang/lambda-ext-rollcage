@@ -3,7 +3,7 @@ name: Format Code
 on: push
 
 permissions:
-  contents: write
+  contents: read
 
 defaults:
   run:
@@ -29,15 +29,5 @@ jobs:
       - name: Install Dependencies
         run: cargo fetch --locked
 
-      - name: Run Formatter
-        run: cargo fmt --all
-
-      - name: Commit and Push Changes
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: Apply Prettier formatting
-          commit_options: '--no-verify'
-          repository: .
-          commit_user_name: github-actions[bot]
-          commit_user_email: github-actions[bot]@users.noreply.github.com
-          commit_author: GitHub Actions <actions@github.com>
+      - name: Check formatting
+        run: cargo fmt --all --check
